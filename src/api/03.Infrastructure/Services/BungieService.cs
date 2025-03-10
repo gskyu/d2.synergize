@@ -10,7 +10,7 @@ public interface IBungieService
     Task<JsonObject> GetInventoryItemDefinition(string itemHash);
 }
 
-internal class BungieService : IBungieService
+public class BungieService : IBungieService
 {
     private readonly IMemoryCache _memoryCache;
     private readonly IBungieApi _bungieApi;

@@ -9,7 +9,7 @@ public interface IBungieApi
     [Get("/Platform/Destiny2/Manifest/")]
     Task<JsonObject> GetManifest();
     
-    [Get("https://www.bungie.net/{contentPath}")]
+    [Get("/{contentPath}")]
     Task<JsonObject> GetContent(string contentPath);
     
     [Get("/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/{itemHash}")]

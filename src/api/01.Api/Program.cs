@@ -10,8 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IBungieService>();
-builder.Services.AddScoped<IReferencesService>();
+builder.Services.AddScoped<IBungieService, BungieService>();
+builder.Services.AddScoped<IReferencesService, ReferencesService>();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddRefitClient<IBungieApi>()
@@ -34,10 +34,10 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapGet(
-        "/weatherforecast", 
+        "/references/subclasses", 
         async (IReferencesService referencesService, CancellationToken cancellationToken) 
             => await referencesService.GetSubClassReferencesAsync(cancellationToken))
-    .WithName("GetWeatherForecast")
+    .WithName("GetSubClassReferences")
     .WithOpenApi();
 
 app.Run();
