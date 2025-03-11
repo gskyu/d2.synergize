@@ -8,7 +8,7 @@ public interface IBungieApi
 {
     [Get("/Platform/Destiny2/Manifest/")]
     Task<JsonObject> GetManifest();
-    
+
     [Get("/{contentPath}")]
     Task<JsonObject> GetContent(string contentPath);
     

@@ -1,12 +1,13 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
+using _03.Infrastructure.Models.BungieApi.Types;
 using _03.Infrastructure.Services;
 
 namespace _02.Application.Services;
 
 public interface IReferencesService
 {
-    Task< IEnumerable<KeyValuePair<string,JsonNode?>>?> GetSubClassReferencesAsync(CancellationToken cancellationToken);
+    Task<IEnumerable<InventoryItemDefinition>> GetSubClassReferencesAsync(CancellationToken cancellationToken);
 }
 
 public class ReferencesService : IReferencesService
@@ -18,13 +19,11 @@ public class ReferencesService : IReferencesService
         _bungieService = bungieService ?? throw new ArgumentNullException(nameof(bungieService));
     }
 
-    public async Task< IEnumerable<KeyValuePair<string,JsonNode?>>?> GetSubClassReferencesAsync(CancellationToken cancellationToken)
+    public async Task<IEnumerable<InventoryItemDefinition>> GetSubClassReferencesAsync(CancellationToken cancellationToken)
     {
         // TODO: setup standards with shared enums and constants 
-        var content = await _bungieService.GetContent("en", "DestinyInventoryItemDefinition");
-        var subClasses = content
-            .Where(n => n.Value!.GetValueKind() == JsonValueKind.Object)
-            .Where(n => n.Value?["itemCategoryHashes"] is JsonArray itemCategoryHashes && itemCategoryHashes.Any(v => (v?.GetValue<long>() ?? 0) == 3109687656));
-        return subClasses.ToDictionary();
+        var content = await _bungieService.GetContentAsync<InventoryItemDefinition>("en", "DestinyInventoryItemDefinition");
+        var subClasses = content.Values.Where(item => item.Type == 16 && (item.Categories?.Count ?? 0) == 3);
+        return subClasses;
     }
 }

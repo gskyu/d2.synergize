@@ -1,12 +1,15 @@
-﻿using System.Text.Json.Nodes;
+﻿using System.Collections.Immutable;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using _03.Infrastructure.Apis;
+using _03.Infrastructure.Models.BungieApi.Types;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace _03.Infrastructure.Services;
 
 public interface IBungieService
 {
-    Task<JsonObject> GetContent(string language, string name);
+    Task<ImmutableDictionary<string, TContent>> GetContentAsync<TContent>(string language, string name) where TContent : class;
     Task<JsonObject> GetInventoryItemDefinition(string itemHash);
 }
 
@@ -29,7 +32,7 @@ public class BungieService : IBungieService
         throw new NotImplementedException();
     }
 
-    public Task<JsonObject> GetContent(string language, string name)
+    public Task<ImmutableDictionary<string, TContent>> GetContentAsync<TContent>(string language, string name) where TContent : class
         => _memoryCache.GetOrCreateAsync(
             GetCacheKey(ContentCacheKey, language, name),
             async _ =>
@@ -43,8 +46,13 @@ public class BungieService : IBungieService
                 var result = await _bungieApi.GetContent(contentPath);
                 if (result is null)
                     throw new InvalidOperationException($"Could not retrieve requested content. ContentLanguage = {language}, ContentName = {name}.");
-                
-                return result;
+
+                var test = result
+                    .Where(v => v.Value != null)
+                    .ToImmutableDictionary(
+                        kvp => kvp.Key, 
+                        kvp => JsonSerializer.Deserialize<TContent>(kvp.Value!.ToJsonString()));
+                return test;
             })!;
 
     private Task<JsonObject?> GetManifest()
