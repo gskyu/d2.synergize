@@ -1,7 +1,6 @@
+using _02.Application.Extensions;
 using _02.Application.Services;
-using _03.Infrastructure.Apis;
-using _03.Infrastructure.Services;
-using Refit;
+using _03.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,18 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-builder.Services.AddScoped<IBungieService, BungieService>();
-builder.Services.AddScoped<IReferencesService, ReferencesService>();
-
 builder.Services.AddMemoryCache();
-builder.Services.AddRefitClient<IBungieApi>()
-    .ConfigureHttpClient(c =>
-    {
-        c.BaseAddress = new Uri("https://www.bungie.net");
-        // TODO: Add support for dotnet user secrets and setup local asp net core env
-        c.DefaultRequestHeaders.Add("X-API-Key", "TODO");
-    });
+
+builder.Services
+    .AddInfrastructureServices()
+    .AddApplicationServices();
 
 var app = builder.Build();
 

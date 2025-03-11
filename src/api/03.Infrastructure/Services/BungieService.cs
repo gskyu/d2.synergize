@@ -9,35 +9,28 @@ namespace _03.Infrastructure.Services;
 
 public interface IBungieService
 {
-    Task<ImmutableDictionary<string, TContent>> GetContentAsync<TContent>(string language, string name) where TContent : class;
-    Task<JsonObject> GetInventoryItemDefinition(string itemHash);
+    Task<ImmutableDictionary<string, TContent>> GetContentAsync<TContent>(string language, string name) where TContent : BungieApiTypeBase;
 }
 
-public class BungieService : IBungieService
+internal class BungieService : IBungieService
 {
     private readonly IMemoryCache _memoryCache;
     private readonly IBungieApi _bungieApi;
 
-    private string ManifestCacheKey => "bungie.api.destiny.manifest";
-    private string ContentCacheKey => "bungie.api.destiny.content.{0}.{1}";
+    private const string ManifestCacheKey = "bungie.api.destiny.manifest";
+    private const string ContentCacheKeyTemplate = "bungie.api.destiny.content.{0}.{1}";
     
-    public BungieService(IMemoryCache memoryCache, IBungieApi bungieApi)
+    internal BungieService(IMemoryCache memoryCache, IBungieApi bungieApi)
     {
         _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
         _bungieApi = bungieApi ?? throw new ArgumentNullException(nameof(bungieApi));
     }
 
-    public Task<JsonObject> GetInventoryItemDefinition(string itemHash)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<ImmutableDictionary<string, TContent>> GetContentAsync<TContent>(string language, string name) where TContent : class
+    public Task<ImmutableDictionary<string, TContent>> GetContentAsync<TContent>(string language, string name) where TContent : BungieApiTypeBase
         => _memoryCache.GetOrCreateAsync(
-            GetCacheKey(ContentCacheKey, language, name),
+            GetCacheKey(ContentCacheKeyTemplate, language, name),
             async _ =>
             {
-                // TODO: setup constants
                 var manifest = await GetManifest();
                 var contentPath = manifest?["Response"]?["jsonWorldComponentContentPaths"]?[language]?[name]?.GetValue<string>();
                 if (contentPath is null)
@@ -47,12 +40,11 @@ public class BungieService : IBungieService
                 if (result is null)
                     throw new InvalidOperationException($"Could not retrieve requested content. ContentLanguage = {language}, ContentName = {name}.");
 
-                var test = result
+                return result
                     .Where(v => v.Value != null)
                     .ToImmutableDictionary(
                         kvp => kvp.Key, 
                         kvp => JsonSerializer.Deserialize<TContent>(kvp.Value!.ToJsonString()));
-                return test;
             })!;
 
     private Task<JsonObject?> GetManifest()
