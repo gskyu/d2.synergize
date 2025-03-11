@@ -20,7 +20,7 @@ internal class BungieService : IBungieService
     private const string ManifestCacheKey = "bungie.api.destiny.manifest";
     private const string ContentCacheKeyTemplate = "bungie.api.destiny.content.{0}.{1}";
     
-    internal BungieService(IMemoryCache memoryCache, IBungieApi bungieApi)
+    public BungieService(IMemoryCache memoryCache, IBungieApi bungieApi)
     {
         _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
         _bungieApi = bungieApi ?? throw new ArgumentNullException(nameof(bungieApi));
